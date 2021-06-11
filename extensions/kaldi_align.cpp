@@ -94,11 +94,11 @@ int LevenshteinAlignment(const std::vector<int> &a,
       int del = e[m-1][n] + 1;  // assumes a == ref, b == hyp.
       int ins = e[m][n-1] + 1;
       // choose sub_or_ok if all else equal.
-      if (sub_or_ok <= std::min(del, ins)) {
+      if (sub_or_ok < std::min(del, ins)) {
         last_m = m-1;
         last_n = n-1;
       } else {
-        if (del <= ins) {  // choose del over ins if equal.
+        if (del < ins) {  // choose del over ins if equal.
           last_m = m-1;
           last_n = n;
         } else {
