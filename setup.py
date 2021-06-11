@@ -59,7 +59,7 @@ else:
     extensions = no_cythonize(extensions)
 
 
-__version__ = "0.1.7"
+__version__ = "0.2"
 
 
 this_directory = path.abspath(path.dirname(__file__))
