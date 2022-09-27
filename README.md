@@ -14,6 +14,12 @@ or
 pip install --verbose -U git+https://github.com/pzelasko/kaldialign.git
 ```
 
+```bash
+https://github.com/pzelasko/kaldialign.git
+cd kaldialign
+python3 setup.py install --verbose
+```
+
 ## Examples
 
 - `align(seq1, seq2, epsilon)` - used to obtain the alignment between two string sequences. `epsilon` should be a null symbol (indicating deletion/insertion) that doesn't exist in either sequence.
