@@ -8,6 +8,12 @@ A small package that exposes edit distance computation functions from [Kaldi](ht
 pip install --verbose kaldialign
 ```
 
+or
+
+```bash
+pip install --verbose -U git+https://github.com/pzelasko/kaldialign.git
+```
+
 ## Examples
 
 - `align(seq1, seq2, epsilon)` - used to obtain the alignment between two string sequences. `epsilon` should be a null symbol (indicating deletion/insertion) that doesn't exist in either sequence.
