@@ -14,6 +14,8 @@ or
 pip install --verbose -U git+https://github.com/pzelasko/kaldialign.git
 ```
 
+or
+
 ```bash
 https://github.com/pzelasko/kaldialign.git
 cd kaldialign
