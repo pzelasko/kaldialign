@@ -38,4 +38,4 @@ jobs:
       - name: Test
         shell: bash
         run: |
-          python3 ./tests/test_align
+          python3 ./tests/test_align.py
