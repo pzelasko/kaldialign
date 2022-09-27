@@ -17,7 +17,7 @@ pip install --verbose -U git+https://github.com/pzelasko/kaldialign.git
 or
 
 ```bash
-https://github.com/pzelasko/kaldialign.git
+git clone https://github.com/pzelasko/kaldialign.git
 cd kaldialign
 python3 setup.py install --verbose
 ```
