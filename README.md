@@ -1,6 +1,12 @@
 # kaldialign
 
-A small package that exposes edit distance computation functions from [Kaldi](https://github.com/kaldi-asr/kaldi). It uses the original Kaldi code and wraps it using Cython.
+A small package that exposes edit distance computation functions from [Kaldi](https://github.com/kaldi-asr/kaldi). It uses the original Kaldi code and wraps it using pybind11.
+
+## Installation
+
+```bash
+pip install --verbose kaldialign
+```
 
 ## Examples
 
@@ -13,10 +19,10 @@ EPS = '*'
 a = ['a', 'b', 'c']
 b = ['a', 's', 'x', 'c']
 ali = align(a, b, EPS)
-assert ali == [('a', 'a'), (EPS, 's'), ('b', 'x'), ('c', 'c')]
+assert ali == [('a', 'a'), (b, 's'), (EPS, 'x'), ('c', 'c')]
 ```
 
-- `edit_distance(seq1, seq2)` - used to obtain the total edit distance, as well as the number of insertions, deletions and substitutions. 
+- `edit_distance(seq1, seq2)` - used to obtain the total edit distance, as well as the number of insertions, deletions and substitutions.
 
 ```python
 from kaldialign import edit_distance
