@@ -13,7 +13,7 @@ cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
 project(kaldialign CXX)
 
-set(KALDIALIGN_VERSION "0.3")
+set(KALDIALIGN_VERSION "0.4")
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
