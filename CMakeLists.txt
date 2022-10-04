@@ -13,6 +13,7 @@ cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
 project(kaldialign CXX)
 
+# Please remember to also change line 3 of ./scripts/conda/kaldialign/meta.yaml
 set(KALDIALIGN_VERSION "0.4")
 
 if(NOT CMAKE_BUILD_TYPE)

@@ -1,0 +1,69 @@
+name: build_conda_macos
+
+on:
+  push:
+    tags:
+      - '*'
+    branches:
+      - conda
+
+concurrency:
+  group: build_conda_macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_conda_macos:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-10.15]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+
+    steps:
+      # refer to https://github.com/actions/checkout
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+          activate-environment: kaldialign
+
+      - name: Display Python version
+        shell: bash -l {0}
+        run: |
+          python3 -c "import sys; print(sys.version)"
+          which python3
+
+      - name: Install conda dependencies
+        shell: bash -l {0}
+        run: |
+          conda install -y -q anaconda-client
+          conda install -y -q conda-build
+
+      - name: Display conda info
+        shell: bash -l {0}
+        run: |
+          which conda
+          conda env list
+          conda info
+
+      - name: Build kaldialign
+        shell: bash -l {0}
+        env:
+          KALDIALIGN_CONDA_TOKEN: ${{ secrets.KALDIALIGN_CONDA_TOKEN }}
+        run: |
+          ./scripts/build_conda.sh
+
+      - name: Display generated files
+        run: |
+          ls -lh /usr/local/miniconda/envs/kaldialign/conda-bld/osx-64
+
+      - name: Upload generated files
+        uses: actions/upload-artifact@v2
+        with:
+          name: cpu-python-${{ matrix.python-version }}-${{ matrix.os }}
+          path: /usr/local/miniconda/envs/kaldialign/conda-bld/osx-64/*.tar.bz2
