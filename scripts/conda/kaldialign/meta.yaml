@@ -1,0 +1,33 @@
+package:
+  name: kaldialign
+  version: "1.4"
+
+source:
+  path: "{{ environ.get('KALDIALIGN_ROOT_DIR') }}"
+
+build:
+  number: 0
+  string: py{{ environ.get('KALDIALIGN_PYTHON_VERSION') }}
+  script: {{ PYTHON }} setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - {{ compiler('c') }} # [win]
+    - {{ compiler('cxx') }} # [win]
+
+  host:
+    - anaconda-client
+    - conda-build
+    - cmake
+    - python
+  run:
+    - python
+
+about:
+  home: https://github.com/pzelasko/kaldialign
+  license: Apache V2
+  license_file: LICENSE
+  summary: Python wrappers for Kaldi Levenshtein's distance and alignment code.
+  description: |
+    A small package that exposes edit distance computation functions from Kaldi.
+    It uses the original Kaldi code and wraps it using pybind11.
