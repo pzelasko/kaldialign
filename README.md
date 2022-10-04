@@ -5,6 +5,12 @@ A small package that exposes edit distance computation functions from [Kaldi](ht
 ## Installation
 
 ```bash
+conda install -c kaldialign kaldialign
+```
+
+or
+
+```bash
 pip install --verbose kaldialign
 ```
 
@@ -33,7 +39,7 @@ EPS = '*'
 a = ['a', 'b', 'c']
 b = ['a', 's', 'x', 'c']
 ali = align(a, b, EPS)
-assert ali == [('a', 'a'), (b, 's'), (EPS, 'x'), ('c', 'c')]
+assert ali == [('a', 'a'), ('b', 's'), (EPS, 'x'), ('c', 'c')]
 ```
 
 - `edit_distance(seq1, seq2)` - used to obtain the total edit distance, as well as the number of insertions, deletions and substitutions.
