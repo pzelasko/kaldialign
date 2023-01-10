@@ -28,12 +28,6 @@ pybind11_add_module(_kaldialign
   ./extensions/kaldialign.cpp
 )
 
-if(UNIX AND NOT APPLE)
-  target_link_libraries(_kaldialign PUBLIC ${PYTHON_LIBRARY})
-elseif(WIN32)
-  target_link_libraries(_kaldialign PUBLIC ${PYTHON_LIBRARIES})
-endif()
-
 install(TARGETS _kaldialign
   DESTINATION ../
 )
