@@ -45,6 +45,17 @@ def test_edit_distance():
         'total': 2
     }
 
+def test_edit_distance_sclite():
+    a = ['a', 'b']
+    b = ['b', 'c']
+    results = edit_distance(a, b, sclite_mode=True)
+    assert results == {
+        'ins': 1,
+        'del': 1,
+        'sub': 0,
+        'total': 2
+    }
+
 
 if __name__ == '__main__':
     test_align()
