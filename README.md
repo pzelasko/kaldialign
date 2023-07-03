@@ -58,6 +58,9 @@ assert results == {
 }
 ```
 
+- For both of the above examples, you can pass `sclite_mode=True` to compute WER or alignments
+based on SCLITE style weights, i.e., insertion/deletion cost 3 and substitution cost 4.
+
 ## Motivation
 
 The need for this arised from the fact that practically all implementations of the Levenshtein distance have slight differences, making it impossible to use a different scoring tool than Kaldi and get the same error rate results. This package copies code from Kaldi directly and wraps it using Cython, avoiding the issue altogether.

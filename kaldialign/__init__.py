@@ -1,8 +1,8 @@
-from typing import List
+from typing import List, Tuple
 import _kaldialign
 
 
-def edit_distance(a, b):
+def edit_distance(a, b, sclite_mode=False):
     int2sym = dict(enumerate(sorted(set(a) | set(b))))
     sym2int = {v: k for k, v in int2sym.items()}
 
@@ -14,10 +14,10 @@ def edit_distance(a, b):
     for sym in b:
         bi.append(sym2int[sym])
 
-    return _kaldialign.edit_distance(ai, bi)
+    return _kaldialign.edit_distance(ai, bi, sclite_mode)
 
 
-def align(a, b, eps_symbol):
+def align(a, b, eps_symbol, sclite_mode=False):
     int2sym = dict(enumerate(sorted(set(a) | set(b) | {eps_symbol})))
     sym2int = {v: k for k, v in int2sym.items()}
 
@@ -31,7 +31,7 @@ def align(a, b, eps_symbol):
         bi.append(sym2int[sym])
 
     eps_int = sym2int[eps_symbol]
-    alignment: List[Tuple[int, int]] = _kaldialign.align(ai, bi, eps_int)
+    alignment: List[Tuple[int, int]] = _kaldialign.align(ai, bi, eps_int, sclite_mode)
 
     ali = []
     idx = 0
