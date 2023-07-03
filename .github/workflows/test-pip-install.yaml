@@ -50,8 +50,8 @@ jobs:
       - name: Run test
         shell: bash
         run: |
+          cd tests
           python3 -c "import kaldialign; print(kaldialign.__file__)"
           python3 -c "import kaldialign; print(kaldialign.__version__)"
 
-          cd tests
           python3 ./test_align.py
