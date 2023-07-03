@@ -34,7 +34,7 @@ jobs:
       - name: Install kaldialign
         shell: bash
         run: |
-          python3 -m pip install --verbose
+          python3 -m pip install --verbose .
 
       - name: Test
         shell: bash
