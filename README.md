@@ -25,7 +25,7 @@ or
 ```bash
 git clone https://github.com/pzelasko/kaldialign.git
 cd kaldialign
-python3 setup.py install --verbose
+python3 -m pip install --verbose .
 ```
 
 ## Examples
