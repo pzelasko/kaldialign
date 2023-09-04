@@ -38,8 +38,6 @@ jobs:
         run: |
           ls -lh ./wheelhouse/
 
-          ls -lh ./wheelhouse/*.whl
-
       - uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
@@ -60,7 +58,7 @@ jobs:
         shell: bash
         run: |
           python3 setup.py sdist
-          ls -l dist/*
+          ls -lh dist/*
 
       - name: Publish sdist to PyPI
         if: ${{ matrix.os == 'ubuntu-latest' }}
