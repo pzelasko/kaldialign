@@ -32,7 +32,7 @@ python3 -m pip install --verbose .
 
 ### Alignment
 
-`align(seq1, seq2, epsilon)` - used to obtain the alignment between two string sequences. `epsilon` should be a null symbol (indicating deletion/insertion) that doesn't exist in either sequence.
+`align(ref, hyp, epsilon)` - used to obtain the alignment between two string sequences. `epsilon` should be a null symbol (indicating deletion/insertion) that doesn't exist in either sequence.
 
 ```python
 from kaldialign import align
@@ -46,7 +46,7 @@ assert ali == [('a', 'a'), ('b', 's'), (EPS, 'x'), ('c', 'c')]
 
 ### Edit distance
 
-`edit_distance(seq1, seq2)` - used to obtain the total edit distance, as well as the number of insertions, deletions and substitutions.
+`edit_distance(ref, hyp)` - used to obtain the total edit distance, as well as the number of insertions, deletions and substitutions.
 
 ```python
 from kaldialign import edit_distance
@@ -67,7 +67,7 @@ based on SCLITE style weights, i.e., insertion/deletion cost 3 and substitution 
 
 ### Bootstrapping method to extract WER 95% confidence intervals
 
-`boostrap_wer_ci(ref, hyp)` - obtain the 95% confidence intervals for WER using Bisani and Ney boostrapping method.
+`boostrap_wer_ci(ref, hyp, hyp2=None)` - obtain the 95% confidence intervals for WER using Bisani and Ney boostrapping method.
 
 ```python
 from kaldialign import bootstrap_wer_ci
@@ -123,4 +123,4 @@ assert ans["p_s2_improv_over_s1"] == 1.0
 
 ## Motivation
 
-The need for this arised from the fact that practically all implementations of the Levenshtein distance have slight differences, making it impossible to use a different scoring tool than Kaldi and get the same error rate results. This package copies code from Kaldi directly and wraps it using Cython, avoiding the issue altogether.
+The need for this arised from the fact that practically all implementations of the Levenshtein distance have slight differences, making it impossible to use a different scoring tool than Kaldi and get the same error rate results. This package copies code from Kaldi directly and wraps it using pybind11, avoiding the issue altogether.
