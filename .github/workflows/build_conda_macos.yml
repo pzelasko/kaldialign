@@ -6,6 +6,7 @@ on:
       - '*'
     branches:
       - conda
+  workflow_dispatch:
 
 concurrency:
   group: build_conda_macos-${{ github.ref }}
@@ -13,12 +14,13 @@ concurrency:
 
 jobs:
   build_conda_macos:
+    name: ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [macos-12]
-        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
 
     steps:
       # refer to https://github.com/actions/checkout

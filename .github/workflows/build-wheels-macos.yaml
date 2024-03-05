@@ -15,21 +15,21 @@ concurrency:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [macos-latest]
+        python-version: ["cp38", "cp39", "cp310", "cp311", "cp312"]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      # see https://cibuildwheel.readthedocs.io/en/stable/changelog/
-      # for a list of versions
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.11.4
+        uses: pypa/cibuildwheel@v2.16.5
         env:
+          CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_BEFORE_BUILD: "pip install -U cmake numpy"
           CIBW_ENVIRONMENT: KALDIALIGN_CMAKE_ARGS="-DCMAKE_OSX_ARCHITECTURES='arm64;x86_64'"
           CIBW_ARCHS: "universal2"
@@ -43,8 +43,9 @@ jobs:
         run: |
           ls -lh ./wheelhouse/
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
+          name: wheel-${{ matrix.python-version }}
           path: ./wheelhouse/*.whl
 
       - name: Publish wheels to PyPI

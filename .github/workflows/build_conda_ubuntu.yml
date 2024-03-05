@@ -6,6 +6,7 @@ on:
       - '*'
     branches:
       - conda
+  workflow_dispatch:
 
 concurrency:
   group: build_conda_ubuntu-${{ github.ref }}
@@ -13,16 +14,17 @@ concurrency:
 
 jobs:
   build_conda_ubuntu:
+    name: ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04]
-        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
 
     steps:
       # refer to https://github.com/actions/checkout
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
