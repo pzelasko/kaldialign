@@ -1,38 +1,55 @@
 import math
-from typing import List, Tuple
 import random
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TypeVar, Union
+
 import _kaldialign
 
+Symbol = TypeVar("Symbol")
 
-def edit_distance(a, b, sclite_mode=False):
+
+def edit_distance(
+    ref: Iterable[Symbol], hyp: Iterable[Symbol], sclite_mode: bool = False
+) -> Dict[str, Union[int, float]]:
     """
-    Compute the edit distance between sequences ``a`` and ``b``.
+    Compute the edit distance between sequences ``ref`` and ``hyp``.
     Both sequences can be strings or lists of strings or ints.
 
     Optional ``sclite_mode`` sets INS/DEL/SUB costs to 3/3/4 for
     compatibility with sclite tool.
 
-    Returns a dict with keys ``ins``, ``del``, ``sub``, ``total``,
-    which stand for the count of insertions, deletions, substitutions,
-    and the total number of errors.
+    Returns a dict with keys:
+    * ``ins`` -- the number of insertions (in ``hyp`` vs ``ref``)
+    * ``del`` -- the number of deletions (in ``hyp`` vs ``ref``)
+    * ``sub`` -- the number of substitutions
+    * ``total`` -- total number of errors
+    * ``ref_len`` -- the number of symbols in ``ref``
+    * ``err_rate`` -- the error rate  (total number of errors divided by ``ref_len``)
     """
-    int2sym = dict(enumerate(sorted(set(a) | set(b))))
+    int2sym = dict(enumerate(sorted(set(ref) | set(hyp))))
     sym2int = {v: k for k, v in int2sym.items()}
 
-    ai: List[int] = []
-    bi: List[int] = []
-    for sym in a:
-        ai.append(sym2int[sym])
+    refi: List[int] = []
+    hypi: List[int] = []
+    for sym in ref:
+        refi.append(sym2int[sym])
 
-    for sym in b:
-        bi.append(sym2int[sym])
+    for sym in hyp:
+        hypi.append(sym2int[sym])
 
-    return _kaldialign.edit_distance(ai, bi, sclite_mode)
+    ans = _kaldialign.edit_distance(refi, hypi, sclite_mode)
+    ans["ref_len"] = len(refi)
+    ans["err_rate"] = ans["total"] / len(refi)
+    return ans
 
 
-def align(a, b, eps_symbol, sclite_mode=False):
+def align(
+    ref: Iterable[Symbol],
+    hyp: Iterable[Symbol],
+    eps_symbol: Symbol,
+    sclite_mode: bool = False,
+) -> List[Tuple[Symbol, Symbol]]:
     """
-    Compute the alignment between sequences ``a`` and ``b``.
+    Compute the alignment between sequences ``ref`` and ``hyp``.
     Both sequences can be strings or lists of strings or ints.
 
     ``eps_symbol`` is used as a blank symbol to indicate insertion or deletion.
@@ -44,16 +61,16 @@ def align(a, b, eps_symbol, sclite_mode=False):
     in the first pair index indicates insertion, and in the second pair index, deletion.
     Mismatched symbols indicate substitution.
     """
-    int2sym = dict(enumerate(sorted(set(a) | set(b) | {eps_symbol})))
+    int2sym = dict(enumerate(sorted(set(ref) | set(hyp) | {eps_symbol})))
     sym2int = {v: k for k, v in int2sym.items()}
 
     ai: List[int] = []
     bi: List[int] = []
 
-    for sym in a:
+    for sym in ref:
         ai.append(sym2int[sym])
 
-    for sym in b:
+    for sym in hyp:
         bi.append(sym2int[sym])
 
     eps_int = sym2int[eps_symbol]
@@ -67,8 +84,12 @@ def align(a, b, eps_symbol, sclite_mode=False):
 
 
 def bootstrap_wer_ci(
-    ref_seqs, hyp_seqs, hyp2_seqs=None, replications: int = 10000, seed: int = 0
-):
+    ref_seqs: Sequence[Sequence[Symbol]],
+    hyp_seqs: Sequence[Sequence[Symbol]],
+    hyp2_seqs: Optional[Sequence[Sequence[Symbol]]] = None,
+    replications: int = 10000,
+    seed: int = 0,
+) -> Dict:
     """
     Compute a boostrapping of WER to extract the 95% confidence interval (CI)
     using the bootstrap method of Bisani and Ney [1].
