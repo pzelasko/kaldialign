@@ -1,4 +1,4 @@
-from kaldialign import align, edit_distance, bootstrap_wer_ci
+from kaldialign import align, bootstrap_wer_ci, edit_distance
 
 EPS = "*"
 
@@ -9,21 +9,42 @@ def test_align():
     ali = align(a, b, EPS)
     assert ali == [("a", "a"), ("b", "s"), (EPS, "x"), ("c", "c")]
     dist = edit_distance(a, b)
-    assert dist == {"ins": 1, "del": 0, "sub": 1, "total": 2}
+    assert dist == {
+        "ins": 1,
+        "del": 0,
+        "sub": 1,
+        "total": 2,
+        "ref_len": 3,
+        "err_rate": 2 / 3,
+    }
 
     a = ["a", "b"]
     b = ["b", "c"]
     ali = align(a, b, EPS)
     assert ali == [("a", EPS), ("b", "b"), (EPS, "c")]
     dist = edit_distance(a, b)
-    assert dist == {"ins": 1, "del": 1, "sub": 0, "total": 2}
+    assert dist == {
+        "ins": 1,
+        "del": 1,
+        "sub": 0,
+        "total": 2,
+        "ref_len": 2,
+        "err_rate": 1.0,
+    }
 
     a = ["A", "B", "C"]
     b = ["D", "C", "A"]
     ali = align(a, b, EPS)
     assert ali == [("A", "D"), ("B", EPS), ("C", "C"), (EPS, "A")]
     dist = edit_distance(a, b)
-    assert dist == {"ins": 1, "del": 1, "sub": 1, "total": 3}
+    assert dist == {
+        "ins": 1,
+        "del": 1,
+        "sub": 1,
+        "total": 3,
+        "ref_len": 3,
+        "err_rate": 1.0,
+    }
 
     a = ["A", "B", "C", "D"]
     b = ["C", "E", "D", "F"]
@@ -37,21 +58,42 @@ def test_align():
         (EPS, "F"),
     ]
     dist = edit_distance(a, b)
-    assert dist == {"ins": 2, "del": 2, "sub": 0, "total": 4}
+    assert dist == {
+        "ins": 2,
+        "del": 2,
+        "sub": 0,
+        "total": 4,
+        "ref_len": 4,
+        "err_rate": 1.0,
+    }
 
 
 def test_edit_distance():
     a = ["a", "b", "c"]
     b = ["a", "s", "x", "c"]
     results = edit_distance(a, b)
-    assert results == {"ins": 1, "del": 0, "sub": 1, "total": 2}
+    assert results == {
+        "ins": 1,
+        "del": 0,
+        "sub": 1,
+        "total": 2,
+        "ref_len": 3,
+        "err_rate": 2 / 3,
+    }
 
 
 def test_edit_distance_sclite():
     a = ["a", "b"]
     b = ["b", "c"]
     results = edit_distance(a, b, sclite_mode=True)
-    assert results == {"ins": 1, "del": 1, "sub": 0, "total": 2}
+    assert results == {
+        "ins": 1,
+        "del": 1,
+        "sub": 0,
+        "total": 2,
+        "ref_len": 2,
+        "err_rate": 1.0,
+    }
 
 
 def test_bootstrap_wer_ci_1system():
