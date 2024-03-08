@@ -26,16 +26,28 @@ Align(const std::vector<int> &a, const std::vector<int> &b, int eps_symbol, cons
   return ans;
 }
 
-static std::vector<std::pair<int, int>> GetEdits(const std::vector<std::vector<int>> &refs, const std::vector<std::vector<int>> &hyps) {
+static std::vector<std::pair<int, int>> GetEdits(
+    const std::vector<std::vector<int>> &refs,
+    const std::vector<std::vector<int>> &hyps
+) {
     return internal::GetEdits(refs, hyps);
 }
 
-static py::tuple GetBootstrapWerInterval(const std::vector<std::pair<int, int>> &edit_sym_per_hyp, const int replications, const unsigned int seed) {
+static py::tuple GetBootstrapWerInterval(
+    const std::vector<std::pair<int, int>> &edit_sym_per_hyp,
+    const int replications,
+    const unsigned int seed
+) {
     const auto ans = internal::GetBootstrapWerInterval(edit_sym_per_hyp, replications, seed);
     return py::make_tuple(ans.first, ans.second);
 }
 
-static double GetPImprov(const std::vector<std::pair<int, int>> &edit_sym_per_hyp, const std::vector<std::pair<int, int>> &edit_sym_per_hyp2, const int replications, const unsigned int seed) {
+static double GetPImprov(
+    const std::vector<std::pair<int, int>> &edit_sym_per_hyp,
+    const std::vector<std::pair<int, int>> &edit_sym_per_hyp2,
+    const int replications,
+    const unsigned int seed
+) {
     return internal::GetPImprov(edit_sym_per_hyp, edit_sym_per_hyp2, replications, seed);
 }
 

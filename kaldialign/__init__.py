@@ -84,9 +84,9 @@ def align(
 
 
 def bootstrap_wer_ci(
-    ref_seqs: Sequence[Sequence[Symbol]],
-    hyp_seqs: Sequence[Sequence[Symbol]],
-    hyp2_seqs: Optional[Sequence[Sequence[Symbol]]] = None,
+    refs: Sequence[Sequence[Symbol]],
+    hyps: Sequence[Sequence[Symbol]],
+    hyps2: Optional[Sequence[Sequence[Symbol]]] = None,
     replications: int = 10000,
     seed: int = 0,
 ) -> Dict:
@@ -96,9 +96,9 @@ def bootstrap_wer_ci(
     The implementation is based on Kaldi's ``compute-wer-bootci`` script [2].
 
     Args:
-        ref_seqs: A list of reference sequences (str, list[str], list[int])
-        hyp_seqs: A list of hypothesis sequences from system1 (str, list[str], list[int])
-        hyp2_seqs: A list of hypothesis sequences from system2 (str, list[str], list[int]).
+        refs: A list of reference sequences (str, list[str], list[list[[int]])
+        hyps: A list of hypothesis sequences from system1 (str, list[str], list[list[int]])
+        hyps2: A list of hypothesis sequences from system2 (str, list[str], list[list[int]]).
             When provided, we'll compute CI for both systems as well as the probability
             of system2 improving over system1.
         replications: The number of replications to use for bootstrapping.
@@ -121,24 +121,29 @@ def bootstrap_wer_ci(
     """
     from _kaldialign import _get_boostrap_wer_interval, _get_edits, _get_p_improv
 
-    assert len(hyp_seqs) == len(
-        ref_seqs
-    ), f"Inconsistent number of reference ({len(ref_seqs)}) and hypothesis ({len(hyp_seqs)}) sequences."
+    assert len(hyps) == len(
+        refs
+    ), f"Inconsistent number of reference ({len(refs)}) and hypothesis ({len(hyps)}) sequences."
+    assert replications > 0, "The number of replications must be greater than 0."
+    assert seed >= 0, "The seed must be 0 or greater."
+    assert not isinstance(refs, str) and not isinstance(
+        hyps, str
+    ), "The input must be a list of strings or list of lists of ints."
 
-    ref_seqs, hyp_seqs, hyp2_seqs = _convert_to_int(ref_seqs, hyp_seqs, hyp2_seqs)
+    refs, hyps, hyps2 = _convert_to_int(refs, hyps, hyps2)
 
-    edit_sym_per_hyp = _get_edits(ref_seqs, hyp_seqs)
+    edit_sym_per_hyp = _get_edits(refs, hyps)
     mean, interval = _get_boostrap_wer_interval(
         edit_sym_per_hyp, replications=replications, seed=seed
     )
     ans1 = _build_results(mean, interval)
-    if hyp2_seqs is None:
+    if hyps2 is None:
         return ans1
 
-    assert len(hyp2_seqs) == len(
-        ref_seqs
-    ), f"Inconsistent number of reference ({len(ref_seqs)}) and hypothesis ({len(hyp2_seqs)}) sequences for the second system (hyp2_seqs)."
-    edit_sym_per_hyp2 = _get_edits(ref_seqs, hyp2_seqs)
+    assert len(hyps2) == len(
+        refs
+    ), f"Inconsistent number of reference ({len(refs)}) and hypothesis ({len(hyps2)}) sequences for the second system (hyp2_seqs)."
+    edit_sym_per_hyp2 = _get_edits(refs, hyps2)
     mean2, interval2 = _get_boostrap_wer_interval(
         edit_sym_per_hyp2, replications=replications, seed=seed
     )
@@ -152,7 +157,7 @@ def bootstrap_wer_ci(
     }
 
 
-def _build_results(mean, interval):
+def _build_results(mean: float, interval: float) -> Dict[str, float]:
     return {
         "wer": mean,
         "ci95": interval,
@@ -161,7 +166,11 @@ def _build_results(mean, interval):
     }
 
 
-def _convert_to_int(ref: list[list], hyp: list[list], hyp2: list[list] = None):
+def _convert_to_int(
+    ref: Sequence[Sequence[Symbol]],
+    hyp: Sequence[Sequence[Symbol]],
+    hyp2: Sequence[Sequence[Symbol]] = None,
+) -> Tuple[List[List[Symbol]], ...]:
     sources = [ref, hyp]
     if hyp2 is not None:
         sources.append(hyp2)

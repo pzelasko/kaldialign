@@ -159,7 +159,10 @@ int LevenshteinAlignment(const std::vector<int> &a,
 
 namespace internal {
 
-    std::vector<std::pair<int, int>> GetEdits(const std::vector<std::vector<int>> &refs, const std::vector<std::vector<int>> &hyps) {
+    std::vector<std::pair<int, int>> GetEdits(
+        const std::vector<std::vector<int>> &refs,
+        const std::vector<std::vector<int>> &hyps
+    ) {
         std::vector<std::pair<int, int>> ans;
         for (int i = 0; i != refs.size(); ++i) {
             const auto &ref = refs[i];
@@ -169,7 +172,11 @@ namespace internal {
         return ans;
     }
 
-    std::pair<double, double> GetBootstrapWerInterval(const std::vector<std::pair<int, int>> &edit_sym_per_hyp, const int replications, const unsigned int seed) {
+    std::pair<double, double> GetBootstrapWerInterval(
+        const std::vector<std::pair<int, int>> &edit_sym_per_hyp,
+        const int replications,
+        const unsigned int seed)
+    {
         std::default_random_engine rng{seed};
         std::uniform_int_distribution<> dist{0, static_cast<int>(edit_sym_per_hyp.size()) - 1};
 
@@ -196,7 +203,12 @@ namespace internal {
         return std::make_pair(mean, interval);
     }
 
-    double GetPImprov(const std::vector<std::pair<int, int>> &edit_sym_per_hyp, const std::vector<std::pair<int, int>> &edit_sym_per_hyp2, const int replications, const unsigned int seed) {
+    double GetPImprov(
+        const std::vector<std::pair<int, int>> &edit_sym_per_hyp,
+        const std::vector<std::pair<int, int>> &edit_sym_per_hyp2,
+        const int replications,
+        const unsigned int seed
+    ) {
         std::default_random_engine rng{seed};
         std::uniform_int_distribution<> dist{0, static_cast<int>(edit_sym_per_hyp.size()) - 1};
 
