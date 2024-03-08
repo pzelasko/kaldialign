@@ -126,6 +126,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     ext_modules=[cmake_extension("_kaldialign")],
     cmdclass={"build_ext": BuildExtension},
+    extras_require={"test": ["pytest"]},
     keywords=[
         "natural language processing",
         "speech recognition",
