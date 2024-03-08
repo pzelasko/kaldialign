@@ -26,8 +26,36 @@ Align(const std::vector<int> &a, const std::vector<int> &b, int eps_symbol, cons
   return ans;
 }
 
+static std::vector<std::pair<int, int>> GetEdits(
+    const std::vector<std::vector<int>> &refs,
+    const std::vector<std::vector<int>> &hyps
+) {
+    return internal::GetEdits(refs, hyps);
+}
+
+static py::tuple GetBootstrapWerInterval(
+    const std::vector<std::pair<int, int>> &edit_sym_per_hyp,
+    const int replications,
+    const unsigned int seed
+) {
+    const auto ans = internal::GetBootstrapWerInterval(edit_sym_per_hyp, replications, seed);
+    return py::make_tuple(ans.first, ans.second);
+}
+
+static double GetPImprov(
+    const std::vector<std::pair<int, int>> &edit_sym_per_hyp,
+    const std::vector<std::pair<int, int>> &edit_sym_per_hyp2,
+    const int replications,
+    const unsigned int seed
+) {
+    return internal::GetPImprov(edit_sym_per_hyp, edit_sym_per_hyp2, replications, seed);
+}
+
 PYBIND11_MODULE(_kaldialign, m) {
   m.doc() = "Python wrapper for kaldialign";
   m.def("edit_distance", &EditDistance, py::arg("a"), py::arg("b"), py::arg("sclite_mode") = false);
   m.def("align", &Align, py::arg("a"), py::arg("b"), py::arg("eps_symbol"), py::arg("sclite_mode") = false);
+  m.def("_get_edits", &GetEdits, py::arg("refs"), py::arg("hyps"));
+  m.def("_get_boostrap_wer_interval", &GetBootstrapWerInterval, py::arg("edit_sym_per_hyp"), py::arg("replications") = 10000, py::arg("seed") = 0);
+  m.def("_get_p_improv", &GetPImprov, py::arg("edit_sym_per_hyp"), py::arg("edit_sym_per_hyp2"), py::arg("replications") = 10000, py::arg("seed") = 0);
 }
