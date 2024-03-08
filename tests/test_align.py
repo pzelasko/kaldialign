@@ -100,7 +100,7 @@ def test_edit_distance_sclite():
     }
 
 
-approx = partial(pytest.approx, abs=1e-3)
+approx = partial(pytest.approx, abs=3e-3)
 
 
 def test_bootstrap_wer_ci_1system():

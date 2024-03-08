@@ -177,7 +177,7 @@ namespace internal {
         const int replications,
         const unsigned int seed)
     {
-        std::default_random_engine rng{seed};
+        std::mt19937 rng{seed};
         std::uniform_int_distribution<> dist{0, static_cast<int>(edit_sym_per_hyp.size()) - 1};
 
         double wer_accum = 0.0, wer_mult_accum = 0.0;
@@ -209,7 +209,7 @@ namespace internal {
         const int replications,
         const unsigned int seed
     ) {
-        std::default_random_engine rng{seed};
+        std::mt19937 rng{seed};
         std::uniform_int_distribution<> dist{0, static_cast<int>(edit_sym_per_hyp.size()) - 1};
 
         double improv_accum = 0.0;
