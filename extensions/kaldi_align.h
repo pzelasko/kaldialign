@@ -42,3 +42,10 @@ int LevenshteinAlignment(const std::vector<int> &a,
                          int eps_symbol,
                          const bool sclite_mode,
                          std::vector<std::pair<int, int> > *output);
+
+
+namespace internal{
+    std::vector<std::pair<int, int>> GetEdits(const std::vector<std::vector<int>> &refs, const std::vector<std::vector<int>> &hyps);
+    std::pair<double, double> GetBootstrapWerInterval(const std::vector<std::pair<int, int>> &edit_sym_per_hyp, const int replications, const unsigned int seed);
+    double GetPImprov(const std::vector<std::pair<int, int>> &edit_sym_per_hyp, const std::vector<std::pair<int, int>> &edit_sym_per_hyp2, const int replications, const unsigned int seed);
+}

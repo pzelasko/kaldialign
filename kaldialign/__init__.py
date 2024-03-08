@@ -119,9 +119,14 @@ def bootstrap_wer_ci(
 
     [2] https://github.com/kaldi-asr/kaldi/blob/master/src/bin/compute-wer-bootci.cc
     """
+    from _kaldialign import _get_boostrap_wer_interval, _get_edits, _get_p_improv
+
     assert len(hyp_seqs) == len(
         ref_seqs
     ), f"Inconsistent number of reference ({len(ref_seqs)}) and hypothesis ({len(hyp_seqs)}) sequences."
+
+    ref_seqs, hyp_seqs, hyp2_seqs = _convert_to_int(ref_seqs, hyp_seqs, hyp2_seqs)
+
     edit_sym_per_hyp = _get_edits(ref_seqs, hyp_seqs)
     mean, interval = _get_boostrap_wer_interval(
         edit_sym_per_hyp, replications=replications, seed=seed
@@ -149,55 +154,25 @@ def bootstrap_wer_ci(
 
 def _build_results(mean, interval):
     return {
-        "wer": round(mean, ndigits=4),
-        "ci95": round(interval, ndigits=4),
-        "ci95min": round(mean - interval, ndigits=4),
-        "ci95max": round(mean + interval, ndigits=4),
+        "wer": mean,
+        "ci95": interval,
+        "ci95min": mean - interval,
+        "ci95max": mean + interval,
     }
 
 
-def _get_edits(ref_seqs, hyp_seqs):
-    edit_sym_per_hyp = []
-    for ref, hyp in zip(ref_seqs, hyp_seqs):
-        dist = edit_distance(ref, hyp)
-        edit_sym_per_hyp.append((dist["total"], len(ref)))
-    return edit_sym_per_hyp
+def _convert_to_int(ref: list[list], hyp: list[list], hyp2: list[list] = None):
+    sources = [ref, hyp]
+    if hyp2 is not None:
+        sources.append(hyp2)
 
+    symbols = sorted(
+        set(symbol for source in sources for seq in source for symbol in seq)
+    )
+    int2sym = dict(enumerate(symbols))
+    sym2int = {v: k for k, v in int2sym.items()}
 
-def _get_boostrap_wer_interval(edit_sym_per_hyp, replications, seed):
-    rng = random.Random(seed)
-
-    wer_accum, wer_mult_accum = 0.0, 0.0
-    for i in range(replications):
-        num_sym, num_errs = 0, 0
-        for j in range(len(edit_sym_per_hyp)):
-            nerr, nsym = rng.choice(edit_sym_per_hyp)
-            num_sym += nsym
-            num_errs += nerr
-        wer_rep = num_errs / num_sym
-        wer_accum += wer_rep
-        wer_mult_accum += wer_rep**2
-
-    mean = wer_accum / replications
-    _tmp = wer_mult_accum / replications - mean**2
-    if _tmp < 0:
-        interval = 0
-    else:
-        interval = 1.96 * math.sqrt(_tmp)
-
-    return mean, interval
-
-
-def _get_p_improv(edit_sym_per_hyp, edit_sym_per_hyp2, replications, seed):
-    rng = random.Random(seed)
-
-    improv_accum = 0
-    for i in range(replications):
-        num_errs = 0
-        for j in range(len(edit_sym_per_hyp)):
-            pos = rng.randint(0, len(edit_sym_per_hyp) - 1)
-            num_errs += edit_sym_per_hyp[pos][0] - edit_sym_per_hyp2[pos][0]
-        if num_errs > 0:
-            improv_accum += 1
-
-    return improv_accum / replications
+    ints = [[[sym2int[item] for item in seq] for seq in source] for source in sources]
+    if hyp2 is None:
+        ints.append(None)
+    return tuple(ints)

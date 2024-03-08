@@ -1,3 +1,4 @@
+#include <random>
 #include "kaldi_align.h"
 
 int LevenshteinEditDistance(const std::vector<int> &ref,
@@ -14,7 +15,7 @@ int LevenshteinEditDistance(const std::vector<int> &ref,
     del_cost = DEL_COST;
     sub_cost = SUB_COST;
   }
-  
+
   // temp sequence to remember error type and stats.
   std::vector<error_stats> e(ref.size()+1);
   std::vector<error_stats> cur_e(ref.size()+1);
@@ -63,8 +64,15 @@ int LevenshteinEditDistance(const std::vector<int> &ref,
   e = cur_e;  // alternate for the next recursion.
   }
   size_t ref_index = e.size()-1;
-  *ins = e[ref_index].ins_num, *del =
-    e[ref_index].del_num, *sub = e[ref_index].sub_num;
+  if (ins != nullptr) {
+    *ins = e[ref_index].ins_num;
+  }
+  if (del != nullptr) {
+    *del = e[ref_index].del_num;
+  }
+  if (sub != nullptr) {
+    *sub = e[ref_index].sub_num;
+  }
   return e[ref_index].total_num;
 }
 
@@ -147,4 +155,64 @@ int LevenshteinAlignment(const std::vector<int> &a,
   }
   ReverseVector(output);
   return e[M][N];
+}
+
+namespace internal {
+
+    std::vector<std::pair<int, int>> GetEdits(const std::vector<std::vector<int>> &refs, const std::vector<std::vector<int>> &hyps) {
+        std::vector<std::pair<int, int>> ans;
+        for (int i = 0; i != refs.size(); ++i) {
+            const auto &ref = refs[i];
+            const auto dist = LevenshteinEditDistance(ref, hyps[i], false, nullptr, nullptr, nullptr);
+            ans.emplace_back(dist, ref.size());
+        }
+        return ans;
+    }
+
+    std::pair<double, double> GetBootstrapWerInterval(const std::vector<std::pair<int, int>> &edit_sym_per_hyp, const int replications, const unsigned int seed) {
+        std::default_random_engine rng{seed};
+        std::uniform_int_distribution<> dist{0, static_cast<int>(edit_sym_per_hyp.size()) - 1};
+
+        double wer_accum = 0.0, wer_mult_accum = 0.0;
+        for (int i = 0; i != replications; ++i) {
+            int num_sym = 0, num_errs = 0;
+            for (int j = 0; j != edit_sym_per_hyp.size(); ++j) {
+                const auto selected = dist(rng);
+                const auto &nerr_nsym = edit_sym_per_hyp[selected];
+                num_errs += nerr_nsym.first;
+                num_sym += nerr_nsym.second;
+            }
+            const double wer_rep = static_cast<double>(num_errs) / num_sym;
+            wer_accum += wer_rep;
+            wer_mult_accum += std::pow(wer_rep, 2);
+        }
+
+        const double mean = wer_accum / replications;
+        const double _tmp = wer_mult_accum / replications - std::pow(mean, 2);
+        double interval = 0.0;
+        if (_tmp > 0) {
+            interval = 1.96 * std::sqrt(_tmp);
+        }
+        return std::make_pair(mean, interval);
+    }
+
+    double GetPImprov(const std::vector<std::pair<int, int>> &edit_sym_per_hyp, const std::vector<std::pair<int, int>> &edit_sym_per_hyp2, const int replications, const unsigned int seed) {
+        std::default_random_engine rng{seed};
+        std::uniform_int_distribution<> dist{0, static_cast<int>(edit_sym_per_hyp.size()) - 1};
+
+        double improv_accum = 0.0;
+        for (int i = 0; i != replications; ++i) {
+            int num_errs = 0;
+            for (int j = 0; j != edit_sym_per_hyp.size(); ++j) {
+                const auto selected = dist(rng);
+                num_errs += edit_sym_per_hyp[selected].first - edit_sym_per_hyp2[selected].first;
+            }
+            if (num_errs > 0) {
+                improv_accum += 1;
+            }
+        }
+
+        return improv_accum / replications;
+    }
+
 }

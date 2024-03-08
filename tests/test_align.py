@@ -1,3 +1,5 @@
+import pytest
+
 from kaldialign import align, bootstrap_wer_ci, edit_distance
 
 EPS = "*"
@@ -108,11 +110,12 @@ def test_bootstrap_wer_ci_1system():
     ]
 
     ans = bootstrap_wer_ci(ref, hyp)
+    print(ans)
 
-    assert ans["wer"] == 0.4989
-    assert ans["ci95"] == 0.2312
-    assert ans["ci95min"] == 0.2678
-    assert ans["ci95max"] == 0.7301
+    assert ans["wer"] == pytest.approx(0.5000166666666673)
+    assert ans["ci95"] == pytest.approx(0.23096511290085206)
+    assert ans["ci95min"] == pytest.approx(0.26905155376581524)
+    assert ans["ci95max"] == pytest.approx(0.7309817795675194)
 
 
 def test_bootstrap_wer_ci_2system():
@@ -132,18 +135,19 @@ def test_bootstrap_wer_ci_2system():
     ]
 
     ans = bootstrap_wer_ci(ref, hyp, hyp2)
+    print(ans)
 
     s = ans["system1"]
-    assert s["wer"] == 0.4989
-    assert s["ci95"] == 0.2312
-    assert s["ci95min"] == 0.2678
-    assert s["ci95max"] == 0.7301
+    assert s["wer"] == pytest.approx(0.5000166666666673)
+    assert s["ci95"] == pytest.approx(0.23096511290085206)
+    assert s["ci95min"] == pytest.approx(0.26905155376581524)
+    assert s["ci95max"] == pytest.approx(0.7309817795675194)
 
     s = ans["system2"]
-    assert s["wer"] == 0.1656
-    assert s["ci95"] == 0.2312
-    assert s["ci95min"] == -0.0656
-    assert s["ci95max"] == 0.3968
+    assert s["wer"] == pytest.approx(0.16668333333333832)
+    assert s["ci95"] == pytest.approx(0.2309651129008648)
+    assert s["ci95min"] == pytest.approx(-0.06428177956752648)
+    assert s["ci95max"] == pytest.approx(0.39764844623420315)
 
     assert ans["p_s2_improv_over_s1"] == 1.0
 
