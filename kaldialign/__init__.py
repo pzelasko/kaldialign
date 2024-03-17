@@ -38,7 +38,13 @@ def edit_distance(
 
     ans = _kaldialign.edit_distance(refi, hypi, sclite_mode)
     ans["ref_len"] = len(refi)
-    ans["err_rate"] = ans["total"] / len(refi)
+    try:
+        ans["err_rate"] = ans["total"] / len(refi)
+    except ZeroDivisionError:
+        if ans["total"] == 0:
+            ans["err_rate"] = 0.0
+        else:
+            ans["err_rate"] = float("inf")
     return ans
 
 

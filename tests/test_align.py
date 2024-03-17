@@ -86,6 +86,34 @@ def test_edit_distance():
     }
 
 
+def test_edit_distance_zero_len_ref_zero_err():
+    a = []
+    b = []
+    results = edit_distance(a, b)
+    assert results == {
+        "ins": 0,
+        "del": 0,
+        "sub": 0,
+        "total": 0,
+        "ref_len": 0,
+        "err_rate": 0,
+    }
+
+
+def test_edit_distance_zero_len_ref_with_err():
+    a = []
+    b = ["a"]
+    results = edit_distance(a, b)
+    assert results == {
+        "ins": 1,
+        "del": 0,
+        "sub": 0,
+        "total": 1,
+        "ref_len": 0,
+        "err_rate": float("inf"),
+    }
+
+
 def test_edit_distance_sclite():
     a = ["a", "b"]
     b = ["b", "c"]
@@ -156,10 +184,3 @@ def test_bootstrap_wer_ci_2system():
 
     assert ans["p_s2_improv_over_s1"] == 1.0
 
-
-if __name__ == "__main__":
-    test_align()
-    test_edit_distance()
-    test_edit_distance_sclite()
-    test_bootstrap_wer_ci_1system()
-    test_bootstrap_wer_ci_2system()
