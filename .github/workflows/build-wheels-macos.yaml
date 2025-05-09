@@ -20,17 +20,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest]
-        python-version: ["cp38", "cp39", "cp310", "cp311", "cp312"]
+        os: [macos-13]
+        python-version: ["cp38", "cp39", "cp310", "cp311", "cp312", "cp313"]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.21.3
         env:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
-          CIBW_BEFORE_BUILD: "pip install -U cmake numpy"
+          CIBW_BEFORE_BUILD: "pip install -U numpy"
           CIBW_ENVIRONMENT: KALDIALIGN_CMAKE_ARGS="-DCMAKE_OSX_ARCHITECTURES='arm64;x86_64'"
           CIBW_ARCHS: "universal2"
           CIBW_BUILD_VERBOSITY: 3
@@ -53,7 +53,13 @@ jobs:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install wheel twine setuptools
+          opts='--break-system-packages'
+          v=${{ matrix.python-version }}
+          if [[ $v == cp38 || $v == cp39 ]]; then
+            opts=''
+          fi
+
+          python3 -m pip install $opts --upgrade pip
+          python3 -m pip install $opts wheel twine==5.0.0 setuptools
 
           twine upload ./wheelhouse/*.whl
