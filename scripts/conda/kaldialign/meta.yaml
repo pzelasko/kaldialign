@@ -1,6 +1,6 @@
 package:
   name: kaldialign
-  version: "0.9.1"
+  version: "0.9.2"
 
 source:
   path: "{{ environ.get('KALDIALIGN_ROOT_DIR') }}"
