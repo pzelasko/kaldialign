@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13]
+        os: [macos-latest]
         python-version: ["cp310", "cp311", "cp312", "cp313", "cp314"]
 
     steps:
