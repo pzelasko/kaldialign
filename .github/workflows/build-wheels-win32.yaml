@@ -29,7 +29,7 @@ jobs:
       # see https://cibuildwheel.readthedocs.io/en/stable/changelog/
       # for a list of versions
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.3
+        uses: pypa/cibuildwheel@v3.3.0
         env:
           CIBW_BEFORE_BUILD: "pip install -U numpy"
           CIBW_BUILD: "${{ matrix.python-version}}-* "
