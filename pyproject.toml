@@ -1,8 +1,63 @@
-[build-system]
-requires = [
-    "cmake>=3.15",
-    "pybind11>=3.0.4",
-    "setuptools>=61",
-    "wheel",
+[project]
+name = "kaldialign"
+version = "0.9.3"
+requires-python = ">=3.10"
+authors = [{ name = "Piotr Żelasko", email = "pzelasko@jhu.edu" }]
+description = "Kaldi alignment methods wrapped into Python"
+readme = "README.md"
+license = "Apache-2.0"
+urls.homepage = "https://github.com/pzelasko/kaldialign"
+keywords = [
+	"natural language processing",
+	"speech recognition",
+	"machine learning",
 ]
+classifiers = [
+	"Programming Language :: Python :: 3.10",
+	"Programming Language :: Python :: 3.11",
+	"Programming Language :: Python :: 3.12",
+	"Programming Language :: Python :: 3.13",
+	"Programming Language :: Python :: 3.14",
+	"Development Status :: 5 - Production/Stable",
+	"Intended Audience :: Developers",
+	"Operating System :: OS Independent",
+	"Topic :: Software Development :: Libraries :: Python Modules",
+	"Topic :: Text Processing :: Linguistic",
+	"Topic :: Scientific/Engineering :: Artificial Intelligence",
+	"Topic :: Scientific/Engineering :: Mathematics",
+]
+
+
+[build-system]
+requires = ["setuptools>=80.0.0", "pybind11>=3.0.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["kaldialign"]
+
+[tool.cibuildwheel]
+# skip = ["*-win32 pp*", "*-musllinux*", "*-manylinux_i686", "*-win_amd64"]
+test-requires = ["pytest", "setuptools", "pybind11"]
+test-command = "uv run pytest -vv {project}/tests" # only build if tests pass
+build-frontend = "build[uv]"
+build-verbosity = 3
+
+[tool.cibuildwheel.macos]
+archs = ["universal2"]
+test-requires = ["pytest", "setuptools", "pybind11", "numpy"]
+repair-wheel-command = ""
+
+# [tool.setuptools] # mabe remove all of pybind11 and just use this directly to make it even more simple and easy to maintain?
+# ext-modules = [
+#   {name = "_kaldialign", sources = ["foo.c"]}
+# ]
+
+
+[tool.ruff.lint]
+extend-select = [
+	"B",   # flake8-bugbear
+	"I",   # isort
+	"PGH", # pygrep-hooks
+	"RUF", # Ruff-specific
+	"UP",  # pyupgrade
+]

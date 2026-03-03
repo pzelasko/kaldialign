@@ -398,7 +398,7 @@ namespace internal {
         const std::vector<std::vector<int>> &hyps
     ) {
         std::vector<std::pair<int, int>> ans;
-        for (int i = 0; i != refs.size(); ++i) {
+        for (size_t i = 0; i != refs.size(); ++i) {
             const auto &ref = refs[i];
             const auto dist = LevenshteinEditDistance(ref, hyps[i], false, nullptr, nullptr, nullptr);
             ans.emplace_back(dist, ref.size());
@@ -431,7 +431,7 @@ namespace internal {
         double wer_accum = 0.0, wer_mult_accum = 0.0;
         for (int i = 0; i != replications; ++i) {
             int num_sym = 0, num_errs = 0;
-            for (int j = 0; j != edit_sym_per_hyp.size(); ++j) {
+            for (size_t j = 0; j != edit_sym_per_hyp.size(); ++j) {
                 const auto selected = dist(rng);
                 const auto &nerr_nsym = edit_sym_per_hyp[selected];
                 num_errs += nerr_nsym.first;
@@ -463,7 +463,7 @@ namespace internal {
         double improv_accum = 0.0;
         for (int i = 0; i != replications; ++i) {
             int num_errs = 0;
-            for (int j = 0; j != edit_sym_per_hyp.size(); ++j) {
+            for (size_t j = 0; j != edit_sym_per_hyp.size(); ++j) {
                 const auto selected = dist(rng);
                 num_errs += edit_sym_per_hyp[selected].first - edit_sym_per_hyp2[selected].first;
             }

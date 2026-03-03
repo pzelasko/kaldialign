@@ -1,7 +1,5 @@
-import math
-import random
-from importlib.metadata import PackageNotFoundError, version
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TypeVar, Union
+from collections.abc import Iterable, Sequence
+from typing import Any, TypeVar
 
 import _kaldialign
 
@@ -70,7 +68,7 @@ def align(
     eps_symbol: Symbol,
     sclite_mode: bool = False,
     merge_compounds: bool = False,
-) -> List[Tuple[Symbol, Symbol]]:
+) -> list[tuple[Symbol, Symbol]]:
     """
     Compute the alignment between sequences ``ref`` and ``hyp``.
     Both sequences can be strings or lists of strings or ints.
@@ -111,11 +109,11 @@ def align(
 def bootstrap_wer_ci(
     refs: Sequence[Sequence[Symbol]],
     hyps: Sequence[Sequence[Symbol]],
-    hyps2: Optional[Sequence[Sequence[Symbol]]] = None,
+    hyps2: Sequence[Sequence[Symbol]] | None = None,
     replications: int = 10000,
     seed: int = 0,
     merge_compounds: bool = False,
-) -> Dict:
+) -> dict[str, Any]:
     """
     Compute a boostrapping of WER to extract the 95% confidence interval (CI)
     using the bootstrap method of Bisani and Ney [1].
@@ -201,7 +199,7 @@ def bootstrap_wer_ci(
     }
 
 
-def _build_results(mean: float, interval: float) -> Dict[str, float]:
+def _build_results(mean: float, interval: float) -> dict[str, float]:
     return {
         "wer": mean,
         "ci95": interval,
@@ -214,13 +212,13 @@ def _convert_to_int(
     ref: Sequence[Sequence[Symbol]],
     hyp: Sequence[Sequence[Symbol]],
     hyp2: Sequence[Sequence[Symbol]] = None,
-) -> Tuple[List[List[Symbol]], ...]:
+) -> tuple[list[list[Symbol]], ...]:
     sources = [ref, hyp]
     if hyp2 is not None:
         sources.append(hyp2)
 
     symbols = sorted(
-        set(symbol for source in sources for seq in source for symbol in seq)
+        {symbol for source in sources for seq in source for symbol in seq}
     )
     int2sym = dict(enumerate(symbols))
     sym2int = {v: k for k, v in int2sym.items()}
