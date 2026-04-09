@@ -65,6 +65,37 @@ assert results == {
 For alignment and edit distance, you can pass `sclite_mode=True` to compute WER or alignments
 based on SCLITE style weights, i.e., insertion/deletion cost 3 and substitution cost 4.
 
+### Compound word matching
+
+All functions accept `merge_compounds=True` to allow adjacent words in either sequence to be
+concatenated (without separator) to match a single word in the other sequence at zero cost.
+This is useful whenever there are inconsistencies within transcriptions,
+or between training and testing conditions of a model evaluated with WER.
+
+```python
+from kaldialign import edit_distance, align
+
+# "white paper" (2 words) matches "whitepaper" (1 word) with 0 errors
+ref = ["the", "white", "paper", "is", "good"]
+hyp = ["the", "whitepaper", "is", "good"]
+
+results = edit_distance(ref, hyp, merge_compounds=True)
+assert results["total"] == 0
+
+# Works in both directions
+results = edit_distance(hyp, ref, merge_compounds=True)
+assert results["total"] == 0
+
+# Alignment shows compound matches as space-joined strings
+ali = align(ref, hyp, "*", merge_compounds=True)
+assert ali == [
+    ("the", "the"),
+    ("white paper", "whitepaper"),
+    ("is", "is"),
+    ("good", "good"),
+]
+```
+
 ### Bootstrapping method to extract WER 95% confidence intervals
 
 `boostrap_wer_ci(ref, hyp, hyp2=None)` - obtain the 95% confidence intervals for WER using Bisani and Ney boostrapping method.
@@ -86,6 +117,8 @@ assert ans["ci95"] == 0.2312
 assert ans["ci95min"] == 0.2678
 assert ans["ci95max"] == 0.7301
 ```
+
+All bootstrap functions also accept `merge_compounds=True`.
 
 It also supports providing hypotheses from system 1 and system 2 to compute the probability of S2 improving over S1:
 

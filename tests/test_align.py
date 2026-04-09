@@ -184,3 +184,106 @@ def test_bootstrap_wer_ci_2system():
 
     assert ans["p_s2_improv_over_s1"] == 1.0
 
+
+# --- Compound word matching tests ---
+
+
+def test_edit_distance_compound_basic():
+    """Two ref words concatenate to match one hyp word."""
+    ref = ["white", "paper"]
+    hyp = ["whitepaper"]
+    dist = edit_distance(ref, hyp, merge_compounds=True)
+    assert dist == {
+        "ins": 0,
+        "del": 0,
+        "sub": 0,
+        "total": 0,
+        "ref_len": 2,
+        "err_rate": 0.0,
+    }
+
+
+def test_edit_distance_compound_reverse():
+    """One ref word matches two concatenated hyp words."""
+    ref = ["whitepaper"]
+    hyp = ["white", "paper"]
+    dist = edit_distance(ref, hyp, merge_compounds=True)
+    assert dist["total"] == 0
+    assert dist["ref_len"] == 1
+    assert dist["err_rate"] == 0.0
+
+
+def test_edit_distance_compound_mixed():
+    """Mix of compound matches and normal errors."""
+    ref = ["the", "white", "paper", "is", "here"]
+    hyp = ["the", "whitepaper", "was", "here"]
+    dist = edit_distance(ref, hyp, merge_compounds=True)
+    assert dist["total"] == 1
+    assert dist["sub"] == 1
+    assert dist["ins"] == 0
+    assert dist["del"] == 0
+
+
+def test_edit_distance_compound_three_words():
+    """Three ref words concatenate to match one hyp word."""
+    ref = ["a", "b", "c"]
+    hyp = ["abc"]
+    dist = edit_distance(ref, hyp, merge_compounds=True)
+    assert dist["total"] == 0
+
+
+def test_edit_distance_compound_no_false_positive():
+    """Without merge_compounds, normal edit distance applies."""
+    ref = ["white", "paper"]
+    hyp = ["whitepaper"]
+    dist = edit_distance(ref, hyp, merge_compounds=False)
+    assert dist["total"] == 2  # 1 sub + 1 del
+
+
+def test_edit_distance_compound_sclite():
+    """sclite_mode affects path selection but compound match is still 0 cost."""
+    ref = ["white", "paper", "is", "here"]
+    hyp = ["whitepaper", "was", "here"]
+    dist_normal = edit_distance(ref, hyp, merge_compounds=True)
+    dist_sclite = edit_distance(ref, hyp, sclite_mode=True, merge_compounds=True)
+    assert dist_normal["total"] == 1
+    assert dist_sclite["total"] == 1
+
+
+def test_align_compound():
+    ref = ["white", "paper"]
+    hyp = ["whitepaper"]
+    ali = align(ref, hyp, EPS, merge_compounds=True)
+    assert ali == [("white paper", "whitepaper")]
+
+
+def test_align_compound_reverse():
+    ref = ["whitepaper"]
+    hyp = ["white", "paper"]
+    ali = align(ref, hyp, EPS, merge_compounds=True)
+    assert ali == [("whitepaper", "white paper")]
+
+
+def test_align_compound_mixed():
+    ref = ["the", "white", "paper", "is", "here"]
+    hyp = ["the", "whitepaper", "was", "here"]
+    ali = align(ref, hyp, EPS, merge_compounds=True)
+    assert ali == [
+        ("the", "the"),
+        ("white paper", "whitepaper"),
+        ("is", "was"),
+        ("here", "here"),
+    ]
+
+
+def test_bootstrap_wer_ci_compound():
+    ref = [
+        ("white", "paper"),
+        ("hello", "world"),
+    ]
+    hyp = [
+        ("whitepaper",),
+        ("helloworld",),
+    ]
+    ans = bootstrap_wer_ci(ref, hyp, merge_compounds=True)
+    assert ans["wer"] == approx(0.0)
