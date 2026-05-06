@@ -30,10 +30,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
-        exclude:
-          - os: macos-latest
-            python-version: "3.7"
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@v4
@@ -60,4 +57,3 @@ jobs:
           python3 -c "import kaldialign; print(kaldialign.__file__)"
           python3 -c "import kaldialign; print(kaldialign.__version__)"
           pytest .
-

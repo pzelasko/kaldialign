@@ -1,8 +1,14 @@
 import math
 import random
+from importlib.metadata import PackageNotFoundError, version
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TypeVar, Union
 
 import _kaldialign
+
+try:
+    __version__ = version("kaldialign")
+except PackageNotFoundError:
+    __version__ = "0+unknown"
 
 Symbol = TypeVar("Symbol")
 

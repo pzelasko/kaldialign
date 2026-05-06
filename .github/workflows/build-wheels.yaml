@@ -47,7 +47,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
       - name: Build sdist
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == 'cp310'
         shell: bash
         run: |
           python3 setup.py sdist
@@ -66,7 +66,7 @@ jobs:
 
 
       - name: Publish sdist to PyPI
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == 'cp38'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == 'cp310'
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
