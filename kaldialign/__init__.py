@@ -8,7 +8,10 @@ Symbol = TypeVar("Symbol")
 
 
 def edit_distance(
-    ref: Iterable[Symbol], hyp: Iterable[Symbol], sclite_mode: bool = False
+    ref: Iterable[Symbol],
+    hyp: Iterable[Symbol],
+    sclite_mode: bool = False,
+    merge_compounds: bool = False,
 ) -> Dict[str, Union[int, float]]:
     """
     Compute the edit distance between sequences ``ref`` and ``hyp``.
@@ -16,6 +19,11 @@ def edit_distance(
 
     Optional ``sclite_mode`` sets INS/DEL/SUB costs to 3/3/4 for
     compatibility with sclite tool.
+
+    When ``merge_compounds`` is True, adjacent words in either sequence
+    may be concatenated (without separator) to match a single word in the
+    other sequence at zero cost.  For example, ``["white", "paper"]`` and
+    ``["whitepaper"]`` are treated as a match with 0 errors.
 
     Returns a dict with keys:
     * ``ins`` -- the number of insertions (in ``hyp`` vs ``ref``)
@@ -25,21 +33,23 @@ def edit_distance(
     * ``ref_len`` -- the number of symbols in ``ref``
     * ``err_rate`` -- the error rate  (total number of errors divided by ``ref_len``)
     """
-    int2sym = dict(enumerate(sorted(set(ref) | set(hyp))))
-    sym2int = {v: k for k, v in int2sym.items()}
+    ref = list(ref)
+    hyp = list(hyp)
 
-    refi: List[int] = []
-    hypi: List[int] = []
-    for sym in ref:
-        refi.append(sym2int[sym])
+    if merge_compounds:
+        ref_str = [str(s) for s in ref]
+        hyp_str = [str(s) for s in hyp]
+        ans = _kaldialign.edit_distance_compound(ref_str, hyp_str, sclite_mode)
+    else:
+        int2sym = dict(enumerate(sorted(set(ref) | set(hyp))))
+        sym2int = {v: k for k, v in int2sym.items()}
+        refi = [sym2int[sym] for sym in ref]
+        hypi = [sym2int[sym] for sym in hyp]
+        ans = _kaldialign.edit_distance(refi, hypi, sclite_mode)
 
-    for sym in hyp:
-        hypi.append(sym2int[sym])
-
-    ans = _kaldialign.edit_distance(refi, hypi, sclite_mode)
-    ans["ref_len"] = len(refi)
+    ans["ref_len"] = len(ref)
     try:
-        ans["err_rate"] = ans["total"] / len(refi)
+        ans["err_rate"] = ans["total"] / len(ref)
     except ZeroDivisionError:
         if ans["total"] == 0:
             ans["err_rate"] = 0.0
@@ -53,6 +63,7 @@ def align(
     hyp: Iterable[Symbol],
     eps_symbol: Symbol,
     sclite_mode: bool = False,
+    merge_compounds: bool = False,
 ) -> List[Tuple[Symbol, Symbol]]:
     """
     Compute the alignment between sequences ``ref`` and ``hyp``.
@@ -63,30 +74,32 @@ def align(
     Optional ``sclite_mode`` sets INS/DEL/SUB costs to 3/3/4 for
     compatibility with sclite tool.
 
+    When ``merge_compounds`` is True, adjacent words in either sequence may
+    be concatenated to match a single word in the other sequence at zero cost.
+    Compound-matched groups appear as space-joined strings in the output, e.g.
+    ``("white paper", "whitepaper")``.
+
     Returns a list of pairs of alignment symbols. The presence of ``eps_symbol``
     in the first pair index indicates insertion, and in the second pair index, deletion.
     Mismatched symbols indicate substitution.
     """
-    int2sym = dict(enumerate(sorted(set(ref) | set(hyp) | {eps_symbol})))
-    sym2int = {v: k for k, v in int2sym.items()}
+    ref = list(ref)
+    hyp = list(hyp)
 
-    ai: List[int] = []
-    bi: List[int] = []
-
-    for sym in ref:
-        ai.append(sym2int[sym])
-
-    for sym in hyp:
-        bi.append(sym2int[sym])
-
-    eps_int = sym2int[eps_symbol]
-    alignment: List[Tuple[int, int]] = _kaldialign.align(ai, bi, eps_int, sclite_mode)
-
-    ali = []
-    for idx in range(len(alignment)):
-        ali.append((int2sym[alignment[idx][0]], int2sym[alignment[idx][1]]))
-
-    return ali
+    if merge_compounds:
+        ref_str = [str(s) for s in ref]
+        hyp_str = [str(s) for s in hyp]
+        return _kaldialign.align_compound(
+            ref_str, hyp_str, str(eps_symbol), sclite_mode
+        )
+    else:
+        int2sym = dict(enumerate(sorted(set(ref) | set(hyp) | {eps_symbol})))
+        sym2int = {v: k for k, v in int2sym.items()}
+        ai = [sym2int[sym] for sym in ref]
+        bi = [sym2int[sym] for sym in hyp]
+        eps_int = sym2int[eps_symbol]
+        alignment = _kaldialign.align(ai, bi, eps_int, sclite_mode)
+        return [(int2sym[a], int2sym[b]) for a, b in alignment]
 
 
 def bootstrap_wer_ci(
@@ -95,6 +108,7 @@ def bootstrap_wer_ci(
     hyps2: Optional[Sequence[Sequence[Symbol]]] = None,
     replications: int = 10000,
     seed: int = 0,
+    merge_compounds: bool = False,
 ) -> Dict:
     """
     Compute a boostrapping of WER to extract the 95% confidence interval (CI)
@@ -109,6 +123,8 @@ def bootstrap_wer_ci(
             of system2 improving over system1.
         replications: The number of replications to use for bootstrapping.
         seed: The random seed to reproduce the results.
+        merge_compounds: When True, adjacent words may be concatenated to match
+            a single compound word at zero cost (see :func:`edit_distance`).
 
     Returns:
         A dict with results. When scoring a single system (``hyp2_seqs=None``), the keys are:
@@ -125,7 +141,12 @@ def bootstrap_wer_ci(
 
     [2] https://github.com/kaldi-asr/kaldi/blob/master/src/bin/compute-wer-bootci.cc
     """
-    from _kaldialign import _get_boostrap_wer_interval, _get_edits, _get_p_improv
+    from _kaldialign import (
+        _get_boostrap_wer_interval,
+        _get_edits,
+        _get_edits_compound,
+        _get_p_improv,
+    )
 
     assert len(hyps) == len(
         refs
@@ -136,9 +157,14 @@ def bootstrap_wer_ci(
         hyps, str
     ), "The input must be a list of strings or list of lists of ints."
 
-    refs, hyps, hyps2 = _convert_to_int(refs, hyps, hyps2)
+    if merge_compounds:
+        refs_s = [[str(s) for s in seq] for seq in refs]
+        hyps_s = [[str(s) for s in seq] for seq in hyps]
+        edit_sym_per_hyp = _get_edits_compound(refs_s, hyps_s)
+    else:
+        refs_i, hyps_i, hyps2_i = _convert_to_int(refs, hyps, hyps2)
+        edit_sym_per_hyp = _get_edits(refs_i, hyps_i)
 
-    edit_sym_per_hyp = _get_edits(refs, hyps)
     mean, interval = _get_boostrap_wer_interval(
         edit_sym_per_hyp, replications=replications, seed=seed
     )
@@ -149,7 +175,13 @@ def bootstrap_wer_ci(
     assert len(hyps2) == len(
         refs
     ), f"Inconsistent number of reference ({len(refs)}) and hypothesis ({len(hyps2)}) sequences for the second system (hyp2_seqs)."
-    edit_sym_per_hyp2 = _get_edits(refs, hyps2)
+
+    if merge_compounds:
+        hyps2_s = [[str(s) for s in seq] for seq in hyps2]
+        edit_sym_per_hyp2 = _get_edits_compound(refs_s, hyps2_s)
+    else:
+        edit_sym_per_hyp2 = _get_edits(refs_i, hyps2_i)
+
     mean2, interval2 = _get_boostrap_wer_interval(
         edit_sym_per_hyp2, replications=replications, seed=seed
     )
