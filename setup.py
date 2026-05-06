@@ -40,7 +40,7 @@ class BuildExtension(build_ext):
         if not cmake_args:
             cmake_args = ["-DCMAKE_BUILD_TYPE=Release"]
 
-        if not make_args and system_make_args == "":
+        if not make_args and system_make_args == "" and not is_windows():
             print("For fast compilation, run:")
             print('export KALDIALIGN_MAKE_ARGS="-j"; python setup.py install')
             make_args = ["-j4"]
