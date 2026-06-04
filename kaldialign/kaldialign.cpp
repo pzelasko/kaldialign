@@ -3,7 +3,7 @@
 #include "pybind11/stl.h"
 namespace py = pybind11;
 
-static py::dict EditDistance(const std::vector<int> &a,
+static py::typing::Dict<py::str, int> EditDistance(const std::vector<int> &a,
                              const std::vector<int> &b,
                              const bool sclite_mode) {
   int ins;
@@ -11,7 +11,7 @@ static py::dict EditDistance(const std::vector<int> &a,
   int sub;
 
   int total = LevenshteinEditDistance(a, b, sclite_mode, &ins, &del, &sub);
-  py::dict ans;
+  py::typing::Dict<py::str, int> ans;
   ans["ins"] = ins;
   ans["del"] = del;
   ans["sub"] = sub;
@@ -33,7 +33,7 @@ static std::vector<std::pair<int, int>> GetEdits(
     return internal::GetEdits(refs, hyps);
 }
 
-static py::tuple GetBootstrapWerInterval(
+static py::typing::Tuple<double, double> GetBootstrapWerInterval(
     const std::vector<std::pair<int, int>> &edit_sym_per_hyp,
     const int replications,
     const unsigned int seed
@@ -51,7 +51,7 @@ static double GetPImprov(
     return internal::GetPImprov(edit_sym_per_hyp, edit_sym_per_hyp2, replications, seed);
 }
 
-static py::dict EditDistanceCompound(const std::vector<std::string> &a,
+static py::typing::Dict<py::str, int> EditDistanceCompound(const std::vector<std::string> &a,
                                       const std::vector<std::string> &b,
                                       const bool sclite_mode) {
   int ins;
@@ -59,7 +59,7 @@ static py::dict EditDistanceCompound(const std::vector<std::string> &a,
   int sub;
 
   int total = LevenshteinEditDistanceCompound(a, b, sclite_mode, &ins, &del, &sub);
-  py::dict ans;
+  py::typing::Dict<py::str, int> ans;
   ans["ins"] = ins;
   ans["del"] = del;
   ans["sub"] = sub;

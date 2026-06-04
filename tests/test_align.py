@@ -1,6 +1,4 @@
-from functools import partial
-
-import pytest
+import math
 
 from kaldialign import align, bootstrap_wer_ci, edit_distance
 
@@ -87,8 +85,8 @@ def test_edit_distance():
 
 
 def test_edit_distance_zero_len_ref_zero_err():
-    a = []
-    b = []
+    a: list[str] = []
+    b: list[str] = []
     results = edit_distance(a, b)
     assert results == {
         "ins": 0,
@@ -101,8 +99,8 @@ def test_edit_distance_zero_len_ref_zero_err():
 
 
 def test_edit_distance_zero_len_ref_with_err():
-    a = []
-    b = ["a"]
+    a: list[str] = []
+    b: list[str] = ["a"]
     results = edit_distance(a, b)
     assert results == {
         "ins": 1,
@@ -127,8 +125,8 @@ def test_edit_distance_sclite():
         "err_rate": 1.0,
     }
 
-
-approx = partial(pytest.approx, abs=3e-3)
+def approx(x: float, target: float) -> bool:
+    return math.isclose(x, target, abs_tol=3e-3)
 
 
 def test_bootstrap_wer_ci_1system():
@@ -145,10 +143,10 @@ def test_bootstrap_wer_ci_1system():
     ans = bootstrap_wer_ci(ref, hyp)
     print(ans)
 
-    assert ans["wer"] == approx(0.50)
-    assert ans["ci95"] == approx(0.23)
-    assert ans["ci95min"] == approx(0.269)
-    assert ans["ci95max"] == approx(0.731)
+    assert approx(ans["wer"], 0.50)
+    assert approx(ans["ci95"], 0.23)
+    assert approx(ans["ci95min"], 0.269)
+    assert approx(ans["ci95max"], 0.731)
 
 
 def test_bootstrap_wer_ci_2system():
@@ -171,16 +169,17 @@ def test_bootstrap_wer_ci_2system():
     print(ans)
 
     s = ans["system1"]
-    assert s["wer"] == approx(0.50)
-    assert s["ci95"] == approx(0.23)
-    assert s["ci95min"] == approx(0.269)
-    assert s["ci95max"] == approx(0.731)
+    assert approx(s["wer"], 0.50)
+    assert approx(s["ci95"], 0.23)
+    assert approx(s["ci95min"], 0.269)
+    assert approx(s["ci95max"], 0.731)
+
 
     s = ans["system2"]
-    assert s["wer"] == approx(0.166)
-    assert s["ci95"] == approx(0.231)
-    assert s["ci95min"] == approx(-0.064)
-    assert s["ci95max"] == approx(0.397)
+    assert approx(s["wer"], 0.166)
+    assert approx(s["ci95"], 0.231)
+    assert approx(s["ci95min"], -0.064)
+    assert approx(s["ci95max"], 0.397)
 
     assert ans["p_s2_improv_over_s1"] == 1.0
 
@@ -286,4 +285,4 @@ def test_bootstrap_wer_ci_compound():
         ("helloworld",),
     ]
     ans = bootstrap_wer_ci(ref, hyp, merge_compounds=True)
-    assert ans["wer"] == approx(0.0)
+    assert approx(ans["wer"], 0.0)

@@ -1,32 +1,23 @@
-from collections.abc import Sequence
-
-def edit_distance(
-    a: Sequence[int],
-    b: Sequence[int],
-    sclite_mode: bool = False
-) -> dict[str, int]: ...
-
-def align(
-    a: Sequence[int],
-    b: Sequence[int],
-    eps_symbol: int,
-    sclite_mode: bool = False
-) -> list[tuple[int, int]]: ...
-
-def _get_edits(
-    refs: Sequence[Sequence[int]],
-    hyps: Sequence[Sequence[int]]
-) -> list[tuple[int, int]]: ...
-
-def _get_boostrap_wer_interval(
-    edit_sym_per_hyp: Sequence[tuple[int, int]],
-    replications: int = 10000,
-    seed: int = 0
-) -> tuple[float, float]: ...
-
-def _get_p_improv(
-    edit_sym_per_hyp: Sequence[tuple[int, int]],
-    edit_sym_per_hyp2: Sequence[tuple[int, int]],
-    replications: int = 10000,
-    seed: int = 0
-) -> float: ...
+"""
+Python wrapper for kaldialign
+"""
+from __future__ import annotations
+import collections.abc
+import typing
+__all__: list[str] = ['align', 'align_compound', 'edit_distance', 'edit_distance_compound']
+def _get_boostrap_wer_interval(edit_sym_per_hyp: collections.abc.Sequence[tuple[typing.SupportsInt | typing.SupportsIndex, typing.SupportsInt | typing.SupportsIndex]], replications: typing.SupportsInt | typing.SupportsIndex = 10000, seed: typing.SupportsInt | typing.SupportsIndex = 0) -> tuple[float, float]:
+    ...
+def _get_edits(refs: collections.abc.Sequence[collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]], hyps: collections.abc.Sequence[collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]]) -> list[tuple[int, int]]:
+    ...
+def _get_edits_compound(refs: collections.abc.Sequence[collections.abc.Sequence[str]], hyps: collections.abc.Sequence[collections.abc.Sequence[str]]) -> list[tuple[int, int]]:
+    ...
+def _get_p_improv(edit_sym_per_hyp: collections.abc.Sequence[tuple[typing.SupportsInt | typing.SupportsIndex, typing.SupportsInt | typing.SupportsIndex]], edit_sym_per_hyp2: collections.abc.Sequence[tuple[typing.SupportsInt | typing.SupportsIndex, typing.SupportsInt | typing.SupportsIndex]], replications: typing.SupportsInt | typing.SupportsIndex = 10000, seed: typing.SupportsInt | typing.SupportsIndex = 0) -> float:
+    ...
+def align(a: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex], b: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex], eps_symbol: typing.SupportsInt | typing.SupportsIndex, sclite_mode: bool = False) -> list[tuple[int, int]]:
+    ...
+def align_compound(a: collections.abc.Sequence[str], b: collections.abc.Sequence[str], eps_symbol: str, sclite_mode: bool = False) -> list[tuple[str, str]]:
+    ...
+def edit_distance(a: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex], b: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex], sclite_mode: bool = False) -> dict[str, int]:
+    ...
+def edit_distance_compound(a: collections.abc.Sequence[str], b: collections.abc.Sequence[str], sclite_mode: bool = False) -> dict[str, int]:
+    ...
