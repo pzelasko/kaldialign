@@ -1,5 +1,0 @@
-include LICENSE
-include extensions/*
-include tests/*
-include CMakeLists.txt
-recursive-include cmake *.*

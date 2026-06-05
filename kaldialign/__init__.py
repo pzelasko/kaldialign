@@ -1,16 +1,22 @@
-import math
-import random
-from importlib.metadata import PackageNotFoundError, version
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TypeVar, Union
+from collections.abc import Iterable, Sequence
+from typing import TypedDict, TypeVar, overload
 
 import _kaldialign
 
-try:
-    __version__ = version("kaldialign")
-except PackageNotFoundError:
-    __version__ = "0+unknown"
-
 Symbol = TypeVar("Symbol")
+
+
+class BootstrapWerResult(TypedDict):
+    wer: float
+    ci95: float
+    ci95min: float
+    ci95max: float
+
+
+class BootstrapWerTwoSystemsResult(TypedDict):
+    system1: BootstrapWerResult
+    system2: BootstrapWerResult
+    p_s2_improv_over_s1: float
 
 
 def edit_distance(
@@ -18,7 +24,7 @@ def edit_distance(
     hyp: Iterable[Symbol],
     sclite_mode: bool = False,
     merge_compounds: bool = False,
-) -> Dict[str, Union[int, float]]:
+) -> dict[str, int | float]:
     """
     Compute the edit distance between sequences ``ref`` and ``hyp``.
     Both sequences can be strings or lists of strings or ints.
@@ -70,7 +76,7 @@ def align(
     eps_symbol: Symbol,
     sclite_mode: bool = False,
     merge_compounds: bool = False,
-) -> List[Tuple[Symbol, Symbol]]:
+) -> list[tuple[Symbol, Symbol]]:
     """
     Compute the alignment between sequences ``ref`` and ``hyp``.
     Both sequences can be strings or lists of strings or ints.
@@ -98,24 +104,45 @@ def align(
         return _kaldialign.align_compound(
             ref_str, hyp_str, str(eps_symbol), sclite_mode
         )
-    else:
-        int2sym = dict(enumerate(sorted(set(ref) | set(hyp) | {eps_symbol})))
-        sym2int = {v: k for k, v in int2sym.items()}
-        ai = [sym2int[sym] for sym in ref]
-        bi = [sym2int[sym] for sym in hyp]
-        eps_int = sym2int[eps_symbol]
-        alignment = _kaldialign.align(ai, bi, eps_int, sclite_mode)
-        return [(int2sym[a], int2sym[b]) for a, b in alignment]
+    int2sym = dict(enumerate(sorted(set(ref) | set(hyp) | {eps_symbol})))
+    sym2int = {v: k for k, v in int2sym.items()}
+    ai = [sym2int[sym] for sym in ref]
+    bi = [sym2int[sym] for sym in hyp]
+    eps_int = sym2int[eps_symbol]
+    alignment = _kaldialign.align(ai, bi, eps_int, sclite_mode)
+    return [(int2sym[a], int2sym[b]) for a, b in alignment]
+
+
+@overload
+def bootstrap_wer_ci(
+    refs: Sequence[Sequence[Symbol]],
+    hyps: Sequence[Sequence[Symbol]],
+    hyps2: None = None,
+    replications: int = 10000,
+    seed: int = 0,
+    merge_compounds: bool = False,
+) -> BootstrapWerResult: ...
+
+
+@overload
+def bootstrap_wer_ci(
+    refs: Sequence[Sequence[Symbol]],
+    hyps: Sequence[Sequence[Symbol]],
+    hyps2: Sequence[Sequence[Symbol]],
+    replications: int = 10000,
+    seed: int = 0,
+    merge_compounds: bool = False,
+) -> BootstrapWerTwoSystemsResult: ...
 
 
 def bootstrap_wer_ci(
     refs: Sequence[Sequence[Symbol]],
     hyps: Sequence[Sequence[Symbol]],
-    hyps2: Optional[Sequence[Sequence[Symbol]]] = None,
+    hyps2: Sequence[Sequence[Symbol]] | None = None,
     replications: int = 10000,
     seed: int = 0,
     merge_compounds: bool = False,
-) -> Dict:
+) -> BootstrapWerResult | BootstrapWerTwoSystemsResult:
     """
     Compute a boostrapping of WER to extract the 95% confidence interval (CI)
     using the bootstrap method of Bisani and Ney [1].
@@ -201,7 +228,7 @@ def bootstrap_wer_ci(
     }
 
 
-def _build_results(mean: float, interval: float) -> Dict[str, float]:
+def _build_results(mean: float, interval: float) -> BootstrapWerResult:
     return {
         "wer": mean,
         "ci95": interval,
@@ -213,14 +240,14 @@ def _build_results(mean: float, interval: float) -> Dict[str, float]:
 def _convert_to_int(
     ref: Sequence[Sequence[Symbol]],
     hyp: Sequence[Sequence[Symbol]],
-    hyp2: Sequence[Sequence[Symbol]] = None,
-) -> Tuple[List[List[Symbol]], ...]:
+    hyp2: Sequence[Sequence[Symbol]] | None = None,
+) -> tuple[list[list[Symbol]], ...]:
     sources = [ref, hyp]
     if hyp2 is not None:
         sources.append(hyp2)
 
     symbols = sorted(
-        set(symbol for source in sources for seq in source for symbol in seq)
+        {symbol for source in sources for seq in source for symbol in seq}
     )
     int2sym = dict(enumerate(symbols))
     sym2int = {v: k for k, v in int2sym.items()}
