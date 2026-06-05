@@ -1,6 +1,6 @@
 [project]
 name = "kaldialign"
-version = "0.9.3"
+version = "0.10.0"
 requires-python = ">=3.10"
 authors = [{ name = "Piotr Żelasko", email = "pzelasko@jhu.edu" }]
 description = "Kaldi alignment methods wrapped into Python"
