@@ -48,18 +48,16 @@ jobs:
           name: wheel-${{ matrix.python-version }}
           path: ./wheelhouse/*.whl
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Publish wheels to PyPI
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
-          opts='--break-system-packages'
-          v=${{ matrix.python-version }}
-          if [[ $v == cp38 || $v == cp39 ]]; then
-            opts=''
-          fi
+          python -m pip install --upgrade pip
+          python -m pip install wheel twine==5.0.0 setuptools
 
-          python3 -m pip install $opts --upgrade pip
-          python3 -m pip install $opts wheel twine==5.0.0 setuptools
-
-          twine upload ./wheelhouse/*.whl
+          twine upload --skip-existing ./wheelhouse/*.whl
