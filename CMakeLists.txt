@@ -15,7 +15,7 @@ project(kaldialign CXX)
 
 # Please remember to also change line 3 of ./scripts/conda/kaldialign/meta.yaml.
 # setup.py uses KALDIALIGN_VERSION for the Python package metadata.
-set(KALDIALIGN_VERSION "0.10.0")
+set(KALDIALIGN_VERSION "0.11.0")
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
