@@ -54,13 +54,65 @@ def edit_distance(
         ans = _kaldialign.edit_distance(refi, hypi, sclite_mode)
 
     ans["ref_len"] = len(ref)
-    try:
-        ans["err_rate"] = ans["total"] / len(ref)
-    except ZeroDivisionError:
-        if ans["total"] == 0:
-            ans["err_rate"] = 0.0
-        else:
-            ans["err_rate"] = float("inf")
+    ans["err_rate"] = _compute_error_rate(ans["total"], len(ref))
+    return ans
+
+
+def batch_error_rate(
+    refs: Iterable[Iterable[Symbol]],
+    hyps: Iterable[Iterable[Symbol]],
+    sclite_mode: bool = False,
+    merge_compounds: bool = False,
+) -> Dict[str, Union[int, float]]:
+    """
+    Compute aggregate error rate between batches of reference and hypothesis
+    sequences.
+
+    Each pair is scored with :func:`edit_distance`, and the returned counts are
+    accumulated across the whole batch.  The aggregate ``err_rate`` is computed
+    as ``sum(ins + del + sub) / sum(ref_len)`` rather than as an average of
+    per-sequence error rates.
+
+    Optional ``sclite_mode`` and ``merge_compounds`` have the same meaning as in
+    :func:`edit_distance`.
+
+    Returns a dict with keys:
+    * ``ins`` -- the total number of insertions (in ``hyps`` vs ``refs``)
+    * ``del`` -- the total number of deletions (in ``hyps`` vs ``refs``)
+    * ``sub`` -- the total number of substitutions
+    * ``total`` -- total number of errors
+    * ``ref_len`` -- the total number of reference symbols
+    * ``err_rate`` -- the aggregate error rate
+    """
+    assert not isinstance(refs, str) and not isinstance(
+        hyps, str
+    ), "The input must be an iterable of reference and hypothesis sequences."
+
+    refs = list(refs)
+    hyps = list(hyps)
+
+    assert len(refs) == len(
+        hyps
+    ), f"Inconsistent number of reference ({len(refs)}) and hypothesis ({len(hyps)}) sequences."
+
+    ans = {
+        "ins": 0,
+        "del": 0,
+        "sub": 0,
+        "total": 0,
+        "ref_len": 0,
+    }
+    for ref, hyp in zip(refs, hyps):
+        cur = edit_distance(
+            ref, hyp, sclite_mode=sclite_mode, merge_compounds=merge_compounds
+        )
+        ans["ins"] += cur["ins"]
+        ans["del"] += cur["del"]
+        ans["sub"] += cur["sub"]
+        ans["total"] += cur["total"]
+        ans["ref_len"] += cur["ref_len"]
+
+    ans["err_rate"] = _compute_error_rate(ans["total"], ans["ref_len"])
     return ans
 
 
@@ -208,6 +260,16 @@ def _build_results(mean: float, interval: float) -> Dict[str, float]:
         "ci95min": mean - interval,
         "ci95max": mean + interval,
     }
+
+
+def _compute_error_rate(total: int, ref_len: int) -> float:
+    try:
+        return total / ref_len
+    except ZeroDivisionError:
+        if total == 0:
+            return 0.0
+        else:
+            return float("inf")
 
 
 def _convert_to_int(

@@ -2,7 +2,7 @@ from functools import partial
 
 import pytest
 
-from kaldialign import align, bootstrap_wer_ci, edit_distance
+from kaldialign import align, batch_error_rate, bootstrap_wer_ci, edit_distance
 
 EPS = "*"
 
@@ -128,6 +128,70 @@ def test_edit_distance_sclite():
     }
 
 
+def test_batch_error_rate():
+    refs = [
+        ("a", "b", "c"),
+        ("d", "e"),
+    ]
+    hyps = [
+        ("a", "x", "c", "y"),
+        ("d",),
+    ]
+
+    results = batch_error_rate(refs, hyps)
+    assert results == {
+        "ins": 1,
+        "del": 1,
+        "sub": 1,
+        "total": 3,
+        "ref_len": 5,
+        "err_rate": 3 / 5,
+    }
+
+
+def test_batch_error_rate_uses_aggregate_ref_len():
+    refs = [
+        ("a",),
+        ("b", "c", "d"),
+    ]
+    hyps = [
+        ("x",),
+        ("b", "c", "d"),
+    ]
+
+    results = batch_error_rate(refs, hyps)
+    assert results["err_rate"] == 1 / 4
+
+
+def test_batch_error_rate_zero_len_ref_zero_err():
+    results = batch_error_rate([(), ()], [(), ()])
+    assert results == {
+        "ins": 0,
+        "del": 0,
+        "sub": 0,
+        "total": 0,
+        "ref_len": 0,
+        "err_rate": 0.0,
+    }
+
+
+def test_batch_error_rate_zero_len_ref_with_err():
+    results = batch_error_rate([(), ()], [(), ("a",)])
+    assert results == {
+        "ins": 1,
+        "del": 0,
+        "sub": 0,
+        "total": 1,
+        "ref_len": 0,
+        "err_rate": float("inf"),
+    }
+
+
+def test_batch_error_rate_mismatched_lengths():
+    with pytest.raises(AssertionError, match="Inconsistent number"):
+        batch_error_rate([("a",)], [("a",), ("b",)])
+
+
 approx = partial(pytest.approx, abs=3e-3)
 
 
@@ -238,6 +302,27 @@ def test_edit_distance_compound_no_false_positive():
     hyp = ["whitepaper"]
     dist = edit_distance(ref, hyp, merge_compounds=False)
     assert dist["total"] == 2  # 1 sub + 1 del
+
+
+def test_batch_error_rate_compound():
+    refs = [
+        ("white", "paper"),
+        ("hello", "world"),
+    ]
+    hyps = [
+        ("whitepaper",),
+        ("hello", "there"),
+    ]
+
+    dist = batch_error_rate(refs, hyps, merge_compounds=True)
+    assert dist == {
+        "ins": 0,
+        "del": 0,
+        "sub": 1,
+        "total": 1,
+        "ref_len": 4,
+        "err_rate": 0.25,
+    }
 
 
 def test_edit_distance_compound_sclite():
