@@ -62,8 +62,34 @@ assert results == {
 }
 ```
 
-For alignment and edit distance, you can pass `sclite_mode=True` to compute WER or alignments
-based on SCLITE style weights, i.e., insertion/deletion cost 3 and substitution cost 4.
+### Batch error rate
+
+`batch_error_rate(refs, hyps)` - used to obtain corpus-level error counts and error rate for a batch of reference/hypothesis sequence pairs. It computes error rate as the sum of all insertions, deletions, and substitutions divided by the total number of reference symbols.
+
+```python
+from kaldialign import batch_error_rate
+
+refs = [
+    ("a", "b", "c"),
+    ("d", "e"),
+]
+hyps = [
+    ("a", "x", "c", "y"),
+    ("d",),
+]
+results = batch_error_rate(refs, hyps)
+assert results == {
+    "ins": 1,
+    "del": 1,
+    "sub": 1,
+    "total": 3,
+    "ref_len": 5,
+    "err_rate": 0.6,
+}
+```
+
+For alignment, edit distance, and batch error rate, you can pass `sclite_mode=True` to compute
+WER or alignments based on SCLITE style weights, i.e., insertion/deletion cost 3 and substitution cost 4.
 
 ### Compound word matching
 
